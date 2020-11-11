@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:3.1-alpine-arm64v8 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:3.1-buster-arm64v8 AS build-env
 
 WORKDIR /app
 
