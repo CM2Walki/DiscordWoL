@@ -52,25 +52,10 @@ namespace DiscordWoL
 
             _client.Log += Log;
             _client.ReactionAdded += OnReactionAddedAsync;
-            _client.Ready += ClientReady;
+            
+            await Login();
 
-            await _client.LoginAsync(TokenType.Bot, _configFile.DiscordToken);
-            await _client.StartAsync();
-
-            await Task.Delay(-1);
-        }
-
-        /// <summary>
-        /// When the client is ready to process commands
-        /// </summary>
-        /// <returns></returns>
-        private async Task ClientReady()
-        {
-            // Are we already set up?
-            if (_targetDeviceLinkedCache.Count > 0)
-            {
-                return;
-            }
+            await Task.Delay(15 * 1000); //Wait 15 seconds
 
             // Clear channel
             await FindAndPurgeChannel();
@@ -78,6 +63,14 @@ namespace DiscordWoL
             await GenerateTargetDeviceMessages();
             // Begin Main Loop
             await MainLoop();
+
+            await Task.Delay(-1);
+        }
+
+        private async Task Login()
+        {
+            await _client.LoginAsync(TokenType.Bot, _configFile.DiscordToken);
+            await _client.StartAsync();
         }
 
         /// <summary>
@@ -110,6 +103,14 @@ namespace DiscordWoL
 
                 // Wait for at least one refresh to complete
                 await Task.WhenAny(refreshTargetsTasks);
+
+                // Walki: There is a weird issue where apparently,
+                // Discord.NET doesn't recover correctly and will permanently disconnect the client,
+                // this "should" solve this issue
+                if (_client.ConnectionState == ConnectionState.Disconnected)
+                {
+                    await Login();
+                }
             }
         }
 
